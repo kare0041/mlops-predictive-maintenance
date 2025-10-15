@@ -1,0 +1,192 @@
+# Azure ML Pipeline Components Configuration
+# Defines reusable components for the predictive maintenance pipeline
+
+name: predictive_maintenance_pipeline
+display_name: "Predictive Maintenance MLOps Pipeline"
+description: "Automated end-to-end pipeline for equipment failure prediction"
+version: "1.0.0"
+
+components:
+  - name: data_preprocessing
+    display_name: "Data Preprocessing"
+    description: "Clean, validate, and split sensor data"
+    type: command
+    code: ../src
+    environment: predictive-maintenance-env
+    command: >-
+      python data_preprocessing.py
+      --input ${{inputs.raw_data}}
+      --output ${{outputs.processed_data}}
+      --test-size ${{inputs.test_size}}
+    inputs:
+      raw_data:
+        type: uri_file
+        description: "Raw sensor data CSV"
+      test_size:
+        type: number
+        default: 0.2
+        description: "Test set proportion"
+    outputs:
+      processed_data:
+        type: uri_folder
+        description: "Preprocessed train/test data"
+
+  - name: feature_engineering
+    display_name: "Feature Engineering"
+    description: "Create rolling statistics, interactions, and domain features"
+    type: command
+    code: ../src
+    environment: predictive-maintenance-env
+    command: >-
+      python feature_engineering.py
+      --input ${{inputs.processed_data}}
+      --output ${{outputs.features}}
+      --is-training true
+    inputs:
+      processed_data:
+        type: uri_folder
+        description: "Preprocessed data"
+    outputs:
+      features:
+        type: uri_folder
+        description: "Engineered features"
+
+  - name: model_training
+    display_name: "Model Training"
+    description: "Train TensorFlow deep learning model"
+    type: command
+    code: ../src
+    environment: predictive-maintenance-env
+    command: >-
+      python train_model.py
+      --train-data ${{inputs.train_features}}
+      --test-data ${{inputs.test_features}}
+      --output-dir ${{outputs.model}}
+      --epochs ${{inputs.epochs}}
+      --batch-size ${{inputs.batch_size}}
+      --learning-rate ${{inputs.learning_rate}}
+    inputs:
+      train_features:
+        type: uri_file
+        description: "Training features CSV"
+      test_features:
+        type: uri_file
+        description: "Test features CSV"
+      epochs:
+        type: integer
+        default: 50
+        description: "Number of training epochs"
+      batch_size:
+        type: integer
+        default: 128
+        description: "Batch size"
+      learning_rate:
+        type: number
+        default: 0.001
+        description: "Learning rate"
+    outputs:
+      model:
+        type: uri_folder
+        description: "Trained model artifacts"
+
+  - name: model_evaluation
+    display_name: "Model Evaluation"
+    description: "Evaluate model and generate performance reports"
+    type: command
+    code: ../src
+    environment: predictive-maintenance-env
+    command: >-
+      python evaluate_model.py
+      --model-path ${{inputs.model}}
+      --test-data ${{inputs.test_data}}
+      --output-dir ${{outputs.evaluation}}
+    inputs:
+      model:
+        type: uri_folder
+        description: "Trained model"
+      test_data:
+        type: uri_file
+        description: "Test dataset"
+    outputs:
+      evaluation:
+        type: uri_folder
+        description: "Evaluation metrics and plots"
+
+  - name: drift_detection
+    display_name: "Drift Detection"
+    description: "Detect data distribution drift"
+    type: command
+    code: ../src
+    environment: predictive-maintenance-env
+    command: >-
+      python drift_detection.py
+      --reference-data ${{inputs.reference_data}}
+      --current-data ${{inputs.current_data}}
+      --output-dir ${{outputs.drift_report}}
+    inputs:
+      reference_data:
+        type: uri_file
+        description: "Reference (training) data"
+      current_data:
+        type: uri_file
+        description: "Current production data"
+    outputs:
+      drift_report:
+        type: uri_folder
+        description: "Drift detection report"
+
+  - name: model_deployment
+    display_name: "Model Deployment"
+    description: "Deploy model to AKS endpoint"
+    type: command
+    code: .
+    environment: predictive-maintenance-env
+    command: >-
+      python deploy_model.py
+      --model-path ${{inputs.model}}
+      --endpoint-name ${{inputs.endpoint_name}}
+      --deployment-config ${{inputs.deployment_config}}
+    inputs:
+      model:
+        type: uri_folder
+        description: "Model to deploy"
+      endpoint_name:
+        type: string
+        default: "predictive-maintenance-endpoint"
+        description: "Endpoint name"
+      deployment_config:
+        type: uri_file
+        description: "Deployment configuration"
+
+# Pipeline triggers
+triggers:
+  - type: schedule
+    schedule:
+      frequency: week
+      interval: 1
+      description: "Weekly retraining pipeline"
+
+  - type: data_change
+    data_source: "sensor_data"
+    description: "Trigger on new sensor data upload"
+
+# Compute targets
+compute:
+  training:
+    type: amlcompute
+    size: STANDARD_DS3_V2
+    min_instances: 0
+    max_instances: 4
+
+  inference:
+    type: kubernetes
+    cluster_name: "aks-prod-cluster"
+
+# Monitoring
+monitoring:
+  enable_app_insights: true
+  log_level: INFO
+  metrics:
+    - prediction_latency
+    - prediction_confidence
+    - drift_score
