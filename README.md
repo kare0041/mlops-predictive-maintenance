@@ -1,7 +1,7 @@
 # Predictive Maintenance Pipeline using TensorFlow and Azure MLOps
 
-[![CI/CD Pipeline](https://github.com/yourusername/predictive-maintenance-mlops/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/yourusername/predictive-maintenance-mlops/actions)
-[![Terraform](https://github.com/yourusername/predictive-maintenance-mlops/workflows/Terraform%20Infrastructure%20Validation/badge.svg)](https://github.com/yourusername/predictive-maintenance-mlops/actions)
+[![CI/CD Pipeline](https://github.com/kare0041/predictive-maintenance-mlops/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/kare0041/predictive-maintenance-mlops/actions)
+[![Terraform](https://github.com/kare0041/predictive-maintenance-mlops/workflows/Terraform%20Infrastructure%20Validation/badge.svg)](https://github.com/kare0041/predictive-maintenance-mlops/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
@@ -162,7 +162,7 @@ predictive-maintenance-mlops/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/predictive-maintenance-mlops.git
+   git clone https://github.com/kare0041/predictive-maintenance-mlops.git
    cd predictive-maintenance-mlops
    ```
 
@@ -670,4 +670,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with** TensorFlow · scikit-learn · PyTorch · Azure ML · Terraform · AKS · Prometheus · Grafana · GitHub Actions
 
-**Author**: Your Name | [LinkedIn](https://linkedin.com/in/yourprofile) | [Portfolio](https://yourportfolio.com)
+**Author**: Daniel Karengera | [LinkedIn](https://www.linkedin.com/in/daniel-karengera-06914881/) 
